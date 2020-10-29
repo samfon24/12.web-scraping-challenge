@@ -1,6 +1,7 @@
 from splinter import Browser
 from bs4 import BeautifulSoup
 import time
+import pandas as pd
 
 def init_browser():
     # @NOTE: Replace the path with your actual path to the chromedriver
@@ -9,16 +10,13 @@ def init_browser():
     return Browser('chrome', **executable_path, headless=False)
 
 def scrape():
-    browser(init_browser)
-    listings = []
-
+    browser = init_browser()
 
     ### 1st site visit
     # Pull latest news title and paragraph
     url = 'https://mars.nasa.gov/news/?page=0&per_page=40&order=publish_date+desc%2Ccreated_at+desc&search=&category=19%2C165%2C184%2C204&blank_scope=Latest'
     browser.visit(url)
-    
-    # pause to visit website
+
     time.sleep(3)
 
     html = browser.html
@@ -28,7 +26,6 @@ def scrape():
     
     latest_title = result.find('div', class_ = "content_title").text
     latest_paragraph = result.find('div', class_ = "article_teaser_body").text
-
 
     ### 2nd site visit
     # Pull Featured Image
@@ -41,7 +38,7 @@ def scrape():
     browser.click_link_by_partial_text('FULL IMAGE')
     # pause to visit website
     time.sleep(3)
-    
+
     html = browser.html
     soup = BeautifulSoup(html, 'html.parser')
     results = soup.find_all('img', class_ = "fancybox-image")
@@ -55,7 +52,7 @@ def scrape():
     url = 'https://space-facts.com/mars/'
     tables = pd.read_html(url)
     df = tables[0]
-    html_table = df.to_html()
+    html_table = df.to_html(header=False, index=False)
 
     ### 4th site visit: Mars Hemispheres
     # Pull Four Images and Titles
@@ -64,7 +61,7 @@ def scrape():
     browser.visit(url)
 
     # pause to visit website
-    time.sleep(5)
+    time.sleep(3)
 
     html = browser.html
     soup = BeautifulSoup(html, 'html.parser')
@@ -81,6 +78,7 @@ def scrape():
         url = result.find('a', class_='itemLink product-item')['href']
         # Visit new url
         browser.visit(main_url + url)
+        time.sleep(3)
         # Parse new url
         html = browser.html
         soup = BeautifulSoup(html,'html.parser')
@@ -89,13 +87,15 @@ def scrape():
         # Obtain full link for large image
         url = main_url + url
         # Append
-        hemisphere_image_urls.append({'Title':title, 'img_url':url})
+        hemisphere_image_urls.append({'title':title, 'img_url':url})
     
     scrape_dict = {}
     
     scrape_dict["news_title"] = latest_title
-    scrape_dict["featured_image"] = featured_image_url
+    scrape_dict["news_paragraph"] = latest_paragraph
+    scrape_dict["featured_image_url"] = featured_image_url
     scrape_dict["table_html"] = html_table
     scrape_dict["title_img_list"] = hemisphere_image_urls
 
+    browser.quit()
     return scrape_dict
