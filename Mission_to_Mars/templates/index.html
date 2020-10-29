@@ -40,10 +40,12 @@
         <!-- 4 Images and Titles -->
         <div class="row" id="Hemispheres">
             {% for result in result.title_img_list %}
-            <div class="col col-6 box">
-                <div class="boxmargin">
-                    <img src={{result.img_url}} alt={{result.img_url}}>
-                    <h3>{{result.title}}</h3>
+            <div class="container">
+                <div class="col col-6 box">
+                    <div class="boxmargin">
+                        <img src={{result.img_url}} alt={{result.img_url}}>
+                        <h3>{{result.title}}</h3>
+                    </div>
                 </div>
             </div>
             {% endfor %}
